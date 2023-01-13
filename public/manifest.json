@@ -16,6 +16,7 @@
     "default_title": "ChatGPT For StackOverflow",
     "default_popup": "popup.html"
   },
+  "host_permissions": ["https://*.openai.com/"],
   "permissions": [
     "storage",
     "scripting"

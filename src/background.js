@@ -77,7 +77,7 @@ async function setConversationProperty(token, conversationId, propertyObject) {
       Authorization: `Bearer ${token}`,
     },
     body: JSON.stringify(propertyObject),
-    mode: "no-cors"
+    // mode: "no-cors"
   });
 }
 
@@ -86,7 +86,9 @@ async function getAccessToken() {
     return cache.get(KEY_ACCESS_TOKEN)
   }
 
-  const resp = await fetch(CHATGPT_URL, { mode: "no-cors" });
+  // const resp = await fetch(CHATGPT_URL, { mode: "no-cors" });
+  const resp = await fetch(CHATGPT_URL);
+  console.log(resp);
   if (resp.status === 403) {
     throw new Error("CLOUDFLARE");
   }
@@ -138,9 +140,11 @@ async function generateAnswer(port, question) {
       ],
       model: "text-davinci-002-render",
       parent_message_id: uuidv4(),
-      mode: "no-cors"
+      // mode: "no-cors"
     }),
     onMessage(message) {
+      console.log(message);
+
       if (message === "[DONE]") { // ChatGPT output is done streaming
         port.postMessage({ event: "DONE" });
         deleteConversation();
