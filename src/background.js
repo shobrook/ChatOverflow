@@ -76,8 +76,7 @@ async function setConversationProperty(token, conversationId, propertyObject) {
       "Content-Type": "application/json",
       Authorization: `Bearer ${token}`,
     },
-    body: JSON.stringify(propertyObject),
-    // mode: "no-cors"
+    body: JSON.stringify(propertyObject)
   });
 }
 
@@ -86,7 +85,6 @@ async function getAccessToken() {
     return cache.get(KEY_ACCESS_TOKEN)
   }
 
-  // const resp = await fetch(CHATGPT_URL, { mode: "no-cors" });
   const resp = await fetch(CHATGPT_URL);
   console.log(resp);
   if (resp.status === 403) {
@@ -139,12 +137,9 @@ async function generateAnswer(port, question) {
         },
       ],
       model: "text-davinci-002-render",
-      parent_message_id: uuidv4(),
-      // mode: "no-cors"
+      parent_message_id: uuidv4()
     }),
     onMessage(message) {
-      console.log(message);
-
       if (message === "[DONE]") { // ChatGPT output is done streaming
         port.postMessage({ event: "DONE" });
         deleteConversation();
@@ -152,7 +147,12 @@ async function generateAnswer(port, question) {
         return;
       }
 
-      const data = JSON.parse(message);
+      try { // Sometimes a non-JSON payload is returned by ChatGPT
+        data = JSON.parse(message);
+      } catch {
+        return;
+      }
+
       const text = data.message?.content?.parts?.[0];
       conversationId = data.conversation_id;
 

@@ -43,7 +43,7 @@ const createAnswerElement = () => {
   bodyElement.className = "post-layout";
   lhsElement.className = "votecell post-layout--left";
   rhsElement.className = "answercell post-layout--right";
-  textElement.className = "s-prose js-post-body";
+  textElement.className = "s-prose js-post-body chatGPTAnswer";
 
   answerElement.appendChild(bodyElement);
   bodyElement.appendChild(lhsElement);
@@ -66,7 +66,7 @@ const populateAnswerElement = (answerElement, chatGPTOutput) =>
       codeElement.textContent = text;
 
       preElement.appendChild(codeElement);
-      textElement.appendChild(preElement);
+      answerElement.appendChild(preElement);
 
       // TODO: Add syntax highlighting
     } else {
@@ -75,15 +75,15 @@ const populateAnswerElement = (answerElement, chatGPTOutput) =>
       // TODO: Handle in-line code
       pElement.textContent = text;
 
-      textElement.appendChild(pElement);
+      answerElement.appendChild(pElement);
     }
   });
 
 const incrementAnswerCount = () => { };
 
-/**********
- * PAYLOADS
- **********/
+/*************
+ * DOM EDITORS
+ *************/
 
 // <link rel="stylesheet" href="/path/to/styles/default.min.css">
 // <script src="/path/to/highlight.min.js"></script>
@@ -105,13 +105,19 @@ const scrapeQuestion = () => {
 
 // TODO: Handle questions with no answers
 const insertAnswer = chatGPTOutput => {
-  const answerElement = createAnswerElement();
+  let answerElement = document.querySelector(".chatGPTAnswer");
+  if (!answerElement) {
+    const answersContainer = document.getElementById("answers");
+    const firstAnswer = document.getElementsByClassName("answer")[0]
+
+    answerElement = createAnswerElement();
+    answersContainer.insertBefore(answerElement, firstAnswer);
+  } else {
+    answerElement.innerHTML = "";
+  }
+
   populateAnswerElement(answerElement, chatGPTOutput);
-  // TODO: Add to answers div
-
   incrementAnswerCount();
-
-  // TODO: Render answer word-by-word
 }
 
 /*****************
@@ -121,7 +127,6 @@ const insertAnswer = chatGPTOutput => {
 port.onMessage.addListener(message => {
   const { key, value } = message;
   if (key === "CHATGPT_OUTPUT") {
-    console.log(value); // TEMP
     insertAnswer(value);
   }
 });
