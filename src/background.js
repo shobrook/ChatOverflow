@@ -86,7 +86,6 @@ async function getAccessToken() {
   }
 
   const resp = await fetch(CHATGPT_URL);
-  console.log(resp);
   if (resp.status === 403) {
     throw new Error("CLOUDFLARE");
   }
@@ -141,15 +140,15 @@ async function generateAnswer(port, question) {
     }),
     onMessage(message) {
       if (message === "[DONE]") { // ChatGPT output is done streaming
-        port.postMessage({ event: "DONE" });
+        // port.postMessage({ event: "DONE" });
         deleteConversation();
-
         return;
       }
 
+      let data;
       try { // Sometimes a non-JSON payload is returned by ChatGPT
         data = JSON.parse(message);
-      } catch {
+      } catch (err) {
         return;
       }
 
@@ -157,6 +156,8 @@ async function generateAnswer(port, question) {
       conversationId = data.conversation_id;
 
       if (text) {
+        console.log("Sent: CHATGPT_OUTPUT");
+
         port.postMessage({
           key: "CHATGPT_OUTPUT",
           value: text,
@@ -180,7 +181,7 @@ chrome.runtime.onConnect.addListener(port => {
 
     if (key === "SCRAPED_QUESTION") {
       try {
-        console.log("Received question"); // TEMP
+        console.log("Received: SCRAPED_QUESTION");
 
         await generateAnswer(port, value);
       } catch (err) {
