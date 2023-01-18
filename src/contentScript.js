@@ -1,8 +1,11 @@
+import hljs from 'highlight.js';
+
 /***********
  * CONSTANTS
  ***********/
 
-const CODE_IDENTIFIER = "```";
+const CODE_BLOCK_IDENTIFIER = "```";
+const INLINE_CODE_IDENTIFIER = "`";
 const port = chrome.runtime.connect({name: "main-port"});
 
 /***********
@@ -25,7 +28,7 @@ const convertPostToText = postElement => {
       });
       return paragraphText.join("");
     } else if (child.tagName === "PRE") {
-      return `${CODE_IDENTIFIER}\n${child.textContent}\n${CODE_IDENTIFIER}`;
+      return `${CODE_BLOCK_IDENTIFIER}\n${child.textContent}\n${CODE_BLOCK_IDENTIFIER}`;
     }
   });
 
@@ -75,25 +78,33 @@ const createAnswerElement = () => {
 }
 
 const populateAnswerText = (textElement, chatGPTOutput) => {
-  chatGPTOutput.split(CODE_IDENTIFIER).forEach((text, index) => {
+  chatGPTOutput.split(CODE_BLOCK_IDENTIFIER).forEach((textBlock, index) => {
     if (index % 2) { // Code block
-      const preElement = document.createElement("pre");
+      let preElement = document.createElement("pre");
       const codeElement = document.createElement("code");
 
-      preElement.className = "s-code-block chatGPTCode";
-      codeElement.textContent = text;
+      // preElement.className = "s-code-block chatGPTCode";
+      codeElement.textContent = textBlock;
 
       preElement.appendChild(codeElement);
+
+      preElement = hljs.highlightElement(preElement);
+      preElement.innerHTML = hljs.highlightElement(codeElement);
+
       textElement.appendChild(preElement);
 
-      console.log(window);
-      console.log(window.hljs);
-      window.hljs.highlightBlock(codeElement);
+      // window.hljs.highlightBlock(codeElement);
+      // preElement.innerHTML = hljs.highlightElement(preElement).value
     } else {
       const pElement = document.createElement("p");
 
-      // TODO: Handle in-line code
-      pElement.textContent = text;
+      textBlock.split(INLINE_CODE_IDENTIFIER).forEach((textBlock, index) => {
+        if (index % 2) { // In-line code
+          pElement.innerHTML += `<code>${textBlock}</code>`;
+        } else {
+          pElement.innerHTML += textBlock;
+        }
+      });
 
       textElement.appendChild(pElement);
     }
