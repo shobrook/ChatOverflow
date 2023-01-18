@@ -1,8 +1,8 @@
-import hljs from "highlight.js";
-
 /***********
  * CONSTANTS
  ***********/
+
+import hljs from "highlight.js";
 
 const CODE_BLOCK_IDENTIFIER = "```";
 const INLINE_CODE_IDENTIFIER = "`";
@@ -77,7 +77,35 @@ const createAnswerElement = () => {
   return answerElement;
 }
 
-const populateAnswerText = (textElement, chatGPTOutput) => {
+const createErrorElement = () => {
+  const errorElement = document.createElement("div");
+  const bodyElement = document.createElement("div");
+  const rhsElement = document.createElement("div");
+  const textElement = document.createElement("div");
+
+  errorElement.className = "answer js-answer";
+  errorElement.id = "chatGPTError";
+  bodyElement.className = "post-layout";
+  rhsElement.className = "answercell post-layout--right";
+  textElement.className = "s-prose js-post-body";
+  textElement.id = "chatGPTErrorText";
+
+  errorElement.appendChild(bodyElement);
+  bodyElement.appendChild(rhsElement);
+  rhsElement.appendChild(textElement);
+
+  errorElement.style.border = "2px solid #343541";
+  errorElement.style.backgroundColor = "#34354126";
+  errorElement.style.borderRadius = "5px";
+  rhsElement.style.paddingLeft = "var(--su16)";
+
+  return errorElement;
+}
+
+const populateAnswerText = chatGPTOutput => {
+  const textElement = document.getElementById("chatGPTAnswerText")
+  textElement.innerHTML = "";
+
   chatGPTOutput.split(CODE_BLOCK_IDENTIFIER).forEach((textBlock, index) => {
     if (index % 2) { // Code block
       const highlightedCode = hljs.highlightAuto(textBlock.trim());
@@ -107,6 +135,11 @@ const populateAnswerText = (textElement, chatGPTOutput) => {
   });
 }
 
+const populateErrorText = errorMessage => {
+  const errorText = document.getElementById("chatGPTErrorText");
+  errorText.innerHTML = errorMessage;
+}
+
 const incrementAnswerCount = () => {
   const answersHeader = document.getElementById("answers-header");
   const answerCountContainer = answersHeader.querySelector("h2");
@@ -120,9 +153,26 @@ const incrementAnswerCount = () => {
   plusOne.style.fontWeight = "600";
 };
 
-/*************
- * DOM EDITORS
- *************/
+const insertElement = (elementId, createElement) => {
+  let element = document.getElementById(elementId);
+  if (!element) {
+    const answersContainer = document.getElementById("answers");
+    const firstAnswer = document.getElementsByClassName("answer")[0]
+
+    element = createElement();
+
+    if (!firstAnswer) {
+      const answersHeader = document.getElementById("answers-header");
+      answersContainer.insertBefore(element, answersHeader.nextSibling);
+    } else {
+      answersContainer.insertBefore(element, firstAnswer);
+    }
+  }
+}
+
+/**************
+ * DOM PAYLOADS
+ **************/
 
 const scrapeQuestion = () => {
   const questionElement = getQuestionElement();
@@ -137,26 +187,16 @@ const scrapeQuestion = () => {
 }
 
 const insertAnswer = chatGPTOutput => {
-  let answerElement = document.getElementById("chatGPTAnswer");
-  if (!answerElement) {
-    const answersContainer = document.getElementById("answers");
-    const firstAnswer = document.getElementsByClassName("answer")[0]
-
+  insertElement("chatGPTAnswer", () => {
     incrementAnswerCount();
-    answerElement = createAnswerElement();
+    return createAnswerElement();
+  });
+  populateAnswerText(chatGPTOutput);
+}
 
-    if (!firstAnswer) {
-      const answersHeader = document.getElementById("answers-header");
-      answersContainer.insertBefore(answerElement, answersHeader.nextSibling);
-    } else {
-      answersContainer.insertBefore(answerElement, firstAnswer);
-    }
-  }
-
-  const answerTextElement = document.getElementById("chatGPTAnswerText")
-  answerTextElement.innerHTML = "";
-
-  populateAnswerText(answerTextElement, chatGPTOutput);
+const insertError = errorMessage => {
+  insertElement("chatGPTError", createErrorElement);
+  populateErrorText(errorMessage);
 }
 
 /*****************
@@ -165,10 +205,14 @@ const insertAnswer = chatGPTOutput => {
 
 port.onMessage.addListener(message => {
   const { key, value } = message;
-  if (key === "CHATGPT_OUTPUT") {
-    console.log("Received: CHATGPT_OUTPUT");
 
+  console.log(`Received: ${key}`);
+
+  if (key === "CHATGPT_OUTPUT") {
     insertAnswer(value);
+  } else if (key === "ERROR") {
+    console.log(value);
+    insertError(value);
   }
 });
 

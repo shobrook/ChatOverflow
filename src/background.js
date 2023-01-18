@@ -11,25 +11,13 @@ const CHATGPT_URL = "https://chat.openai.com/api/auth/session";
 const CHATGPT_API_URL = "https://chat.openai.com/backend-api";
 const STACKOVERFLOW_BASE_URL = "stackoverflow.com/questions/";
 const KEY_ACCESS_TOKEN = "accessToken";
+const AUTH_ERROR_MESSAGE = `<p>Please login and pass Cloudflare check at <a href="chat.openai.com">chat.openai.com</a></p>`;
+const CLOUDFLARE_ERROR_MESSAGE = `<p>Please pass the Cloudflare check at <a href="chat.openai.com">chat.openai.com</a></p>`;
 const cache = new ExpiryMap(10 * 1000);
 
 /*********
  * HELPERS
  *********/
-
-function isStackOverflowQuestion(url) {
-  if (!url.includes(STACKOVERFLOW_BASE_URL)) {
-    return false;
-  }
-
-  const urlComponents = url.split("/");
-  const indexOfBase = urlComponents.indexOf("questions");
-  if (indexOfBase !== -1 && urlComponents.length - 1 > indexOfBase) {
-    return true;
-  }
-
-  return false;
-}
 
 async function* streamAsyncIterable(stream) {
   const reader = stream.getReader();
@@ -54,7 +42,15 @@ async function fetchSSE(resource, options) {
 
   if (!resp.ok) {
     const error = await resp.json().catch(() => ({}));
-    throw new Error(!isEmpty(error) ? JSON.stringify(error) : `${resp.status} ${resp.statusText}`);
+
+    let errorMessage;
+    if (!isEmpty(error)) {
+      errorMessage = `<p style="color: red">${error["detail"]["message"]}</p>`
+    } else {
+      errorMessage = `<p style="color: red">Error: ${resp.status} ${resp.statusText}</p>`;
+    }
+
+    throw new Error(errorMessage);
   }
 
   const parser = createParser(event => {
@@ -87,12 +83,12 @@ async function getAccessToken() {
 
   const resp = await fetch(CHATGPT_URL);
   if (resp.status === 403) {
-    throw new Error("CLOUDFLARE");
+    throw new Error(CLOUDFLARE_ERROR_MESSAGE);
   }
 
   const data = await resp.json().catch(() => ({}))
   if (!data.accessToken) {
-    throw new Error("UNAUTHORIZED");
+    throw new Error(AUTH_ERROR_MESSAGE);
   }
 
   cache.set(KEY_ACCESS_TOKEN, data.accessToken);
@@ -140,7 +136,6 @@ async function generateAnswer(port, question) {
     }),
     onMessage(message) {
       if (message === "[DONE]") { // ChatGPT output is done streaming
-        // port.postMessage({ event: "DONE" });
         deleteConversation();
         return;
       }
@@ -179,14 +174,13 @@ chrome.runtime.onConnect.addListener(port => {
   port.onMessage.addListener(async message => {
     const { key, value } = message;
 
+    console.log(`Received: ${key}`);
+
     if (key === "SCRAPED_QUESTION") {
       try {
-        console.log("Received: SCRAPED_QUESTION");
-
         await generateAnswer(port, value);
       } catch (err) {
-        console.error(err);
-        port.postMessage({ error: err.message });
+        port.postMessage({ key: "ERROR", value: err.message });
         cache.delete(KEY_ACCESS_TOKEN);
       }
     }
