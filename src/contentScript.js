@@ -1,4 +1,4 @@
-import hljs from 'highlight.js';
+import hljs from "highlight.js";
 
 /***********
  * CONSTANTS
@@ -80,21 +80,17 @@ const createAnswerElement = () => {
 const populateAnswerText = (textElement, chatGPTOutput) => {
   chatGPTOutput.split(CODE_BLOCK_IDENTIFIER).forEach((textBlock, index) => {
     if (index % 2) { // Code block
-      let preElement = document.createElement("pre");
+      const highlightedCode = hljs.highlightAuto(textBlock.trim());
+
+      const preElement = document.createElement("pre");
       const codeElement = document.createElement("code");
 
-      // preElement.className = "s-code-block chatGPTCode";
-      codeElement.textContent = textBlock;
+      preElement.className = "default s-code-block";
+      codeElement.className = `hljs language-${highlightedCode.language}`;
+      codeElement.innerHTML = highlightedCode.value;
 
       preElement.appendChild(codeElement);
-
-      preElement = hljs.highlightElement(preElement);
-      preElement.innerHTML = hljs.highlightElement(codeElement);
-
       textElement.appendChild(preElement);
-
-      // window.hljs.highlightBlock(codeElement);
-      // preElement.innerHTML = hljs.highlightElement(preElement).value
     } else {
       const pElement = document.createElement("p");
 
@@ -109,10 +105,6 @@ const populateAnswerText = (textElement, chatGPTOutput) => {
       textElement.appendChild(pElement);
     }
   });
-
-  // chrome.scripting.executeScript({
-  //   code: `const codeBlocks = document.getElementsByClassName("chatGPTCode"); codeBlocks.forEach(block => window.hljs.highlightBlock(block));`
-  // });
 }
 
 const incrementAnswerCount = () => {
@@ -132,20 +124,16 @@ const incrementAnswerCount = () => {
  * DOM EDITORS
  *************/
 
-// <link rel="stylesheet" href="/path/to/styles/default.min.css">
-// <script src="/path/to/highlight.min.js"></script>
-// <script>hljs.highlightAll();</script>
-
 const scrapeQuestion = () => {
   const questionElement = getQuestionElement();
   const questionText = convertPostToText(questionElement);
-
-  console.log("Sent: SCRAPED_QUESTION");
 
   port.postMessage({
     key: "SCRAPED_QUESTION",
     value: questionText
   });
+
+  console.log("Sent: SCRAPED_QUESTION");
 }
 
 // TODO: Handle questions with no answers
@@ -179,9 +167,4 @@ port.onMessage.addListener(message => {
   }
 });
 
-/******
- * MAIN
- ******/
-
 window.onload = scrapeQuestion;
-// scrapeQuestion();
