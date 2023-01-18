@@ -136,7 +136,6 @@ const scrapeQuestion = () => {
   console.log("Sent: SCRAPED_QUESTION");
 }
 
-// TODO: Handle questions with no answers
 const insertAnswer = chatGPTOutput => {
   let answerElement = document.getElementById("chatGPTAnswer");
   if (!answerElement) {
@@ -145,7 +144,13 @@ const insertAnswer = chatGPTOutput => {
 
     incrementAnswerCount();
     answerElement = createAnswerElement();
-    answersContainer.insertBefore(answerElement, firstAnswer);
+
+    if (!firstAnswer) {
+      const answersHeader = document.getElementById("answers-header");
+      answersContainer.insertBefore(answerElement, answersHeader.nextSibling);
+    } else {
+      answersContainer.insertBefore(answerElement, firstAnswer);
+    }
   }
 
   const answerTextElement = document.getElementById("chatGPTAnswerText")
