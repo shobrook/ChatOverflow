@@ -11,8 +11,8 @@ const CHATGPT_URL = "https://chat.openai.com/api/auth/session";
 const CHATGPT_API_URL = "https://chat.openai.com/backend-api";
 const STACKOVERFLOW_BASE_URL = "stackoverflow.com/questions/";
 const KEY_ACCESS_TOKEN = "accessToken";
-const AUTH_ERROR_MESSAGE = `<p>Please login and pass Cloudflare check at <a href="chat.openai.com">chat.openai.com</a></p>`;
-const CLOUDFLARE_ERROR_MESSAGE = `<p>Please pass the Cloudflare check at <a href="chat.openai.com">chat.openai.com</a></p>`;
+const AUTH_ERROR_MESSAGE = `<p>Please login and pass Cloudflare check at <a href="https://chat.openai.com" target="_blank">chat.openai.com</a></p>`;
+const CLOUDFLARE_ERROR_MESSAGE = `<p>Please pass the Cloudflare check at <a href="https://chat.openai.com" target="_blank">chat.openai.com</a></p>`;
 const cache = new ExpiryMap(10 * 1000);
 
 /*********
@@ -185,4 +185,18 @@ chrome.runtime.onConnect.addListener(port => {
       }
     }
   });
+});
+
+chrome.runtime.onMessage.addListener(async (request, sender, sendResponse) => {
+  const { key, value } = request;
+
+  if (key === "CHECK_ACCESS") {
+    try {
+      await getAccessToken();
+      sendResponse({ key: "ACCESS_CONFIRMED", value: true });
+    } catch (err) {
+      sendResponse({ key: "ERROR", value: err.message });
+      cache.delete(KEY_ACCESS_TOKEN);
+    }
+  }
 });
