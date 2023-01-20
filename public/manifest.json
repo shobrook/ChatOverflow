@@ -18,8 +18,7 @@
   },
   "host_permissions": ["https://*.openai.com/"],
   "permissions": [
-    "storage",
-    "scripting"
+    "storage"
   ],
   "content_scripts": [
     {
