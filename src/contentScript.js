@@ -12,6 +12,13 @@ const port = chrome.runtime.connect({name: "main-port"});
  * HELPERS *
  ***********/
 
+const deleteElementById = elementId => {
+  const element = document.getElementById(elementId);
+  if (element) {
+    element.outerHTML = "";
+  }
+}
+
 const getQuestionElement = () => {
   const questionElement = document.getElementById("question");
   const questionBody = questionElement.getElementsByClassName("js-post-body")[0];
@@ -119,8 +126,6 @@ const populateAnswerText = chatGPTOutput => {
       const codeElement = document.createElement("code");
       const highlightedCode = hljs.highlightAuto(textBlock.trim());
       codeElement.className = `hljs language-${highlightedCode.language}`;
-      // const highlightedCode = hljs.highlight(textBlock, "python");
-      // console.log(highlightedCode);
       codeElement.className = "hljs language-python";
       codeElement.innerHTML = highlightedCode.value;
 
@@ -142,9 +147,9 @@ const populateAnswerText = chatGPTOutput => {
   });
 }
 
-const populateErrorText = errorMessage => {
-  const errorText = document.getElementById("chatGPTErrorText");
-  errorText.innerHTML = errorMessage;
+const populateNonAnswerText = (isError, text) => {
+  const textElement = document.getElementById(isError ? "chatGPTErrorText" : "chatGPTAnswerText");
+  textElement.innerHTML = text;
 }
 
 const incrementAnswerCount = () => {
@@ -160,6 +165,9 @@ const incrementAnswerCount = () => {
 };
 
 const insertElement = (elementId, createElement) => {
+  deleteElementById("chatGPTError");
+  deleteElementById("chatGPTAnswer");
+
   let element = document.getElementById(elementId);
   if (!element) {
     const answersContainer = document.getElementById("answers");
@@ -193,16 +201,20 @@ const scrapeQuestion = () => {
 }
 
 const insertAnswer = chatGPTOutput => {
+  const isError = false;
+
   insertElement("chatGPTAnswer", () => {
     incrementAnswerCount();
-    return createAnswerElement(false);
+    return createAnswerElement(isError);
   });
   populateAnswerText(chatGPTOutput);
 }
 
 const insertError = errorMessage => {
-  insertElement("chatGPTError", () => createAnswerElement(true));
-  populateErrorText(errorMessage);
+  const isError = true;
+
+  insertElement("chatGPTError", () => createAnswerElement(isError));
+  populateNonAnswerText(isError, errorMessage);
 }
 
 /*****************
@@ -221,4 +233,10 @@ port.onMessage.addListener(message => {
   }
 });
 
-window.onload = scrapeQuestion;
+window.onload = () => {
+  const isError = false;
+
+  insertElement("chatGPTAnswer", () => createAnswerElement(isError));
+  populateNonAnswerText(isError, "Waiting for ChatGPT response...")
+  scrapeQuestion();
+}
