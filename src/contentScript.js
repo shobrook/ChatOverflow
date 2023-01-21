@@ -119,6 +119,9 @@ const populateAnswerText = chatGPTOutput => {
       const codeElement = document.createElement("code");
       const highlightedCode = hljs.highlightAuto(textBlock.trim());
       codeElement.className = `hljs language-${highlightedCode.language}`;
+      // const highlightedCode = hljs.highlight(textBlock, "python");
+      // console.log(highlightedCode);
+      codeElement.className = "hljs language-python";
       codeElement.innerHTML = highlightedCode.value;
 
       preElement.appendChild(codeElement);

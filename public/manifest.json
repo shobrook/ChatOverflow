@@ -1,8 +1,8 @@
 {
   "manifest_version": 3,
-  "name": "ChatGPT For StackOverflow",
+  "name": "ChatGPT for StackOverflow",
   "version": "0.1.0",
-  "description": "My Chrome Extension",
+  "description": "ChatGPT's response to every StackOverflow question",
   "icons": {
     "16": "icons/icon_16.png",
     "32": "icons/icon_32.png",
@@ -13,7 +13,7 @@
     "service_worker": "background.js"
   },
   "action": {
-    "default_title": "ChatGPT For StackOverflow",
+    "default_title": "ChatGPT for StackOverflow",
     "default_popup": "popup.html"
   },
   "host_permissions": ["https://*.openai.com/"],
