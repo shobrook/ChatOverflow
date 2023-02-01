@@ -155,12 +155,26 @@ async function generateAnswer(port, question) {
 
         port.postMessage({
           key: "CHATGPT_OUTPUT",
-          value: text,
-          // messageId: data.message.id,
-          // conversationId: data.conversation_id,
+          value: {
+            text,
+            messageId: data.message.id,
+            conversationId: data.conversation_id
+          }
         });
       }
     },
+  });
+}
+
+async function sendMessageFeedback(data) {
+  const accessToken = await getAccessToken();
+  fetch(`${CHATGPT_API_URL}/conversation/message_feedback`, {
+    "POST",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${accessToken}`,
+    },
+    body: JSON.stringify(data),
   });
 }
 
@@ -176,13 +190,15 @@ chrome.runtime.onConnect.addListener(port => {
 
     console.log(`Received: ${key}`);
 
-    if (key === "SCRAPED_QUESTION") {
-      try {
+    try {
+      if (key === "SCRAPED_QUESTION") {
         await generateAnswer(port, value);
-      } catch (err) {
-        port.postMessage({ key: "ERROR", value: err.message });
-        cache.delete(KEY_ACCESS_TOKEN);
+      } else if (key === "FEEDBACK") {
+        await sendMessageFeedback(value);
       }
+    } catch (err) {
+      port.postMessage({ key: "ERROR", value: err.message });
+      cache.delete(KEY_ACCESS_TOKEN);
     }
   });
 });
@@ -190,13 +206,13 @@ chrome.runtime.onConnect.addListener(port => {
 chrome.runtime.onMessage.addListener(async (request, sender, sendResponse) => {
   const { key, value } = request;
 
-  if (key === "CHECK_ACCESS") {
-    try {
+  try {
+    if (key === "CHECK_ACCESS") {
       await getAccessToken();
       sendResponse({ key: "ACCESS_CONFIRMED", value: true });
-    } catch (err) {
-      sendResponse({ key: "ERROR", value: err.message });
-      cache.delete(KEY_ACCESS_TOKEN);
     }
+  } catch (err) {
+    sendResponse({ key: "ERROR", value: err.message });
+    cache.delete(KEY_ACCESS_TOKEN);
   }
 });
