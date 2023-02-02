@@ -26,6 +26,7 @@
     "expiry-map": "^2.0.0",
     "highlight.js": "^11.7.0",
     "lodash-es": "^4.17.21",
+    "mixpanel-browser": "^2.45.0",
     "uuid": "^9.0.0"
   }
 }

@@ -2,11 +2,19 @@
  * CONSTANTS
  ***********/
 
+import mixpanel from "mixpanel-browser";
 import hljs from "highlight.js";
 
 const CODE_BLOCK_IDENTIFIER = "```";
 const INLINE_CODE_IDENTIFIER = "`";
-const port = chrome.runtime.connect({name: "main-port"});
+const port = chrome.runtime.connect({ name: "main-port" });
+
+/********************
+ * MIXPANEL ANALYTICS
+ ********************/
+
+mixpanel.init("086b13692ef1441185a5f7e238c620c6", { debug: true });
+mixpanel.track("Sign up"); // TODO
 
 /***********
  * HELPERS *
