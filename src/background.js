@@ -131,7 +131,7 @@ async function generateAnswer(port, question) {
           },
         },
       ],
-      model: "text-davinci-002-render",
+      model: "text-davinci-002-render-next",
       parent_message_id: uuidv4()
     }),
     onMessage(message) {
@@ -169,7 +169,7 @@ async function generateAnswer(port, question) {
 async function sendMessageFeedback(data) {
   const accessToken = await getAccessToken();
   fetch(`${CHATGPT_API_URL}/conversation/message_feedback`, {
-    "POST",
+    method: "POST",
     headers: {
       "Content-Type": "application/json",
       Authorization: `Bearer ${accessToken}`,
