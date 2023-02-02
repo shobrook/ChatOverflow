@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "ChatGPT for StackOverflow",
-  "version": "0.1.0",
+  "version": "0.3.0",
   "description": "ChatGPT's response to every StackOverflow question",
   "icons": {
     "16": "icons/icon_16.png",
