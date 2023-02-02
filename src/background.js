@@ -1,11 +1,11 @@
+/***********
+ * CONSTANTS
+ ***********/
+
 import ExpiryMap from "expiry-map";
 import { v4 as uuidv4 } from "uuid";
 import { createParser } from "eventsource-parser";
 import { isEmpty } from "lodash-es";
-
-/***********
- * CONSTANTS
- ***********/
 
 const CHATGPT_URL = "https://chat.openai.com/api/auth/session";
 const CHATGPT_API_URL = "https://chat.openai.com/backend-api";
@@ -168,7 +168,7 @@ async function generateAnswer(port, question) {
           value: {
             text,
             messageId: data.message.id,
-            conversationId: data.conversation_id
+            conversationId: data.conversation_id,
           }
         });
       }
@@ -202,9 +202,13 @@ chrome.runtime.onConnect.addListener(port => {
 
     try {
       if (key === "SCRAPED_QUESTION") {
-        await generateAnswer(port, value);
+        const { questionText, questionId } = value;
+
+        await generateAnswer(port, questionText);
       } else if (key === "FEEDBACK") {
-        await sendMessageFeedback(value);
+        const { messageId, conversationId, questionId, rating } = value;
+
+        await sendMessageFeedback({ messageId, conversationId, rating });
       }
     } catch (err) {
       port.postMessage({ key: "ERROR", value: err.message });

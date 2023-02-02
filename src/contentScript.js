@@ -9,12 +9,7 @@ const CODE_BLOCK_IDENTIFIER = "```";
 const INLINE_CODE_IDENTIFIER = "`";
 const port = chrome.runtime.connect({ name: "main-port" });
 
-/********************
- * MIXPANEL ANALYTICS
- ********************/
-
 mixpanel.init("086b13692ef1441185a5f7e238c620c6", { debug: true });
-mixpanel.track("Sign up"); // TODO
 
 /***********
  * HELPERS *
@@ -32,6 +27,11 @@ const getQuestionElement = () => {
   const questionBody = questionElement.getElementsByClassName("js-post-body")[0];
 
   return questionBody;
+}
+
+const getQuestionId = () => {
+  const questionElement = document.getElementById("question");
+  return questionElement.getAttribute("data-questionid");
 }
 
 const convertPostToText = postElement => {
@@ -207,6 +207,7 @@ const insertElement = (elementId, createElement) => {
 }
 
 const insertFeedbackIcons = (messageId, conversationId) => {
+  const questionId = getQuestionId();
   const optionsSidebar = document.getElementById("chatGPTOptions");
 
   const thumbsUpWrapper = document.createElement("div");
@@ -232,9 +233,12 @@ const insertFeedbackIcons = (messageId, conversationId) => {
       value: {
         messageId,
         conversationId,
+        questionId,
         rating: "thumbsUp",
       }
     });
+
+    mixpanel.track("ChatGPT Feedback", { questionId, rating: "thumbsUp" });
   }
   thumbsDownSVG.onclick = async event => {
     thumbsUpSVG.style.fill = "#6a737c";
@@ -245,9 +249,12 @@ const insertFeedbackIcons = (messageId, conversationId) => {
       value: {
         messageId,
         conversationId,
+        questionId,
         rating: "thumbsDown",
       }
     });
+
+    mixpanel.track("ChatGPT Feedback", { questionId, rating: "thumbsDown" });
   }
 }
 
@@ -258,13 +265,19 @@ const insertFeedbackIcons = (messageId, conversationId) => {
 const scrapeQuestion = () => {
   const questionElement = getQuestionElement();
   const questionText = convertPostToText(questionElement);
+  const questionId = getQuestionId();
 
   port.postMessage({
     key: "SCRAPED_QUESTION",
-    value: questionText
+    value: {
+      questionText,
+      questionId
+    }
   });
 
   console.log("Sent: SCRAPED_QUESTION");
+
+  mixpanel.track("ChatGPT Response", { questionId });
 }
 
 const insertAnswer = chatGPTOutput => {
