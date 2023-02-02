@@ -43,9 +43,19 @@ async function fetchSSE(resource, options) {
   if (!resp.ok) {
     const error = await resp.json().catch(() => ({}));
 
+    console.log(error);
+
     let errorMessage;
     if (!isEmpty(error)) {
-      errorMessage = `<p style="color: red">${error["detail"]["message"]}</p>`
+      if ("detail" in error) {
+        if (typeof error.detail === "object" && "message" in error.detail) {
+          errorMessage = `<p style="color: red">${error.detail.message}</p>`;
+        } else {
+          errorMessage = `<p style="color: red">${error.detail}</p>`;
+        }
+      } else {
+        errorMessage = `<p style="color: red">An unknown error occurred.</p>`;
+      }
     } else {
       errorMessage = `<p style="color: red">Error: ${resp.status} ${resp.statusText}</p>`;
     }
@@ -131,7 +141,7 @@ async function generateAnswer(port, question) {
           },
         },
       ],
-      model: "text-davinci-002-render-next",
+      model: "text-davinci-002-render",
       parent_message_id: uuidv4()
     }),
     onMessage(message) {
