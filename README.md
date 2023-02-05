@@ -1,21 +1,17 @@
-# <img src="public/icons/icon_48.png" width="45" align="left"> Chatgpt For Stackoverflow
+# ChatGPT for StackOverflow
 
-My Chrome Extension
+A browser extension that displays ChatGPT's response alongside community answers to StackOverflow questions.
 
-## Features
+![Demo](demo.gif)
 
-- Feature 1
-- Feature 2
+## Installation
 
-## Install
+You can install the extension [for Chrome](https://chrome.google.com/webstore/detail/chatgpt-for-stackoverflow/apjhekoaogdimcgiihoncakocdddhmlk) or [for Firefox.](https://addons.mozilla.org/en-US/firefox/addon/chatgpt-for-stackoverflow/)
 
-[**Chrome** extension]() <!-- TODO: Add chrome extension link inside parenthesis -->
+## Running Locally
 
-## Contribution
-
-Suggestions and pull requests are welcomed!.
-
----
-
-This project was bootstrapped with [Chrome Extension CLI](https://github.com/dutiyesh/chrome-extension-cli)
-
+1. Clone the repository
+2. Install dependencies with `$ npm install`
+3. Build the extension with `$ npm run build`
+4. Upload the `build` directory to Chrome
+5. For Firefox, use `manifest.v2.json` and change all in-code references to `chrome` to `browser`
