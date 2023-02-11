@@ -4,6 +4,8 @@ A browser extension that displays ChatGPT's response alongside community answers
 
 ![Demo](demo.gif)
 
+> Inspired by [ChatGPT for Google.](https://github.com/wong2/chatgpt-google-extension)
+
 ## Installation
 
 You can install the extension [for Chrome](https://chrome.google.com/webstore/detail/chatgpt-for-stackoverflow/apjhekoaogdimcgiihoncakocdddhmlk) or [for Firefox.](https://addons.mozilla.org/en-US/firefox/addon/chatgpt-for-stackoverflow/)
