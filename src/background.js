@@ -14,6 +14,7 @@ const KEY_ACCESS_TOKEN = "accessToken";
 const AUTH_ERROR_MESSAGE = `<p>Please login and pass Cloudflare check at <a href="https://chat.openai.com" target="_blank">chat.openai.com</a></p>`;
 const CLOUDFLARE_ERROR_MESSAGE = `<p>Please pass the Cloudflare check at <a href="https://chat.openai.com" target="_blank">chat.openai.com</a></p>`;
 const cache = new ExpiryMap(10 * 1000);
+let modelName = "";
 
 /*********
  * HELPERS
@@ -106,8 +107,30 @@ async function getAccessToken() {
   return data.accessToken;
 }
 
+async function setModelName(token) {
+  try {
+    // Fetches the users models, for plus users this returns the paid davinci model
+    const response = await fetch(`${CHATGPT_API_URL}/models`, {
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+    });
+    const models = (await response.json()).models;
+    modelName = models[0].slug;
+  } catch (error) {
+    console.error(error);
+    // Default free model
+    modelName = "text-davinci-002-render";
+  }
+}
+
 async function generateAnswer(port, question) {
   const accessToken = await getAccessToken();
+
+  if (isEmpty(modelName)) {
+    await setModelName(accessToken);
+  }
 
   let conversationId;
   const deleteConversation = () => {
@@ -141,7 +164,7 @@ async function generateAnswer(port, question) {
           },
         },
       ],
-      model: "text-davinci-002-render",
+      model: modelName,
       parent_message_id: uuidv4()
     }),
     onMessage(message) {
