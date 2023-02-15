@@ -172,7 +172,7 @@ async function generateAnswer(port, question) {
           },
         },
       ],
-      model: getModelName(token),
+      model: getModelName(accessToken),
       parent_message_id: uuidv4()
     }),
     onMessage(message) {
