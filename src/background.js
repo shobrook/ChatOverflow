@@ -11,6 +11,7 @@ const CHATGPT_URL = "https://chat.openai.com/api/auth/session";
 const CHATGPT_API_URL = "https://chat.openai.com/backend-api";
 const STACKOVERFLOW_BASE_URL = "stackoverflow.com/questions/";
 const KEY_ACCESS_TOKEN = "accessToken";
+const KEY_MODEL_NAME = "modelName";
 const AUTH_ERROR_MESSAGE = `<p>Please login and pass Cloudflare check at <a href="https://chat.openai.com" target="_blank">chat.openai.com</a></p>`;
 const CLOUDFLARE_ERROR_MESSAGE = `<p>Please pass the Cloudflare check at <a href="https://chat.openai.com" target="_blank">chat.openai.com</a></p>`;
 const cache = new ExpiryMap(10 * 1000);
@@ -106,6 +107,36 @@ async function getAccessToken() {
   return data.accessToken;
 }
 
+async function getModelName(token) {
+  if (cache.get(KEY_MODEL_NAME)) {
+    return cache.get(KEY_MODEL_NAME);
+  }
+
+  return setModelName(token);
+}
+
+async function setModelName(token) {
+    // Default free model
+  let modelName = "text-davinci-002-render";
+
+  try {
+    // Fetches the users models, for plus users this returns the paid davinci model
+    const response = await fetch(`${CHATGPT_API_URL}/models`, {
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+    });
+    const models = (await response.json()).models;
+    modelName = models[0].slug;
+  } catch (error) {
+    console.error(error);
+  }
+
+  cache.set(KEY_MODEL_NAME);
+  return modelName;
+}
+
 async function generateAnswer(port, question) {
   const accessToken = await getAccessToken();
 
@@ -141,7 +172,7 @@ async function generateAnswer(port, question) {
           },
         },
       ],
-      model: "text-davinci-002-render",
+      model: await getModelName(accessToken),
       parent_message_id: uuidv4()
     }),
     onMessage(message) {
