@@ -121,7 +121,7 @@ const createAnswerElement = isError => {
   textElement.className = "s-prose js-post-body";
   textElement.id = isError ? "chatGPTErrorText" : "chatGPTAnswerText";
 
-  stylizeAnswerElement(answerElement);
+  // stylizeAnswerElement(answerElement);
   stylizeBodyElement(bodyElement);
   stylizeLHSElement(lhsElement);
   stylizeRHSElement(rhsElement, isError);
@@ -143,7 +143,7 @@ const populateAnswerText = chatGPTOutput => {
     if (index % 2) { // Code block
       const preElement = document.createElement("pre");
       preElement.className = "default s-code-block";
-      preElement.style.backgroundColor = "#e3e5e6";
+      // preElement.style.backgroundColor = "#e3e5e6";
 
       const codeElement = document.createElement("code");
       const highlightedCode = hljs.highlightAuto(textBlock.trim());
